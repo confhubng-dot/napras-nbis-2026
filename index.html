@@ -135,6 +135,7 @@
   <button data-p="abstracts">Abstracts</button>
   <button data-p="info">Venue &amp; Hotels</button>
   <button data-p="news">Announcements</button>
+  <button data-p="delegates">Delegates</button>
 </nav>
 
 <main>
@@ -171,6 +172,11 @@
 
   <section class="panel" id="p-news">
     <div id="newsList"></div>
+  </section>
+
+  <section class="panel" id="p-delegates">
+    <input class="search" id="delSearch" type="search" placeholder="Search delegates by name or institution…">
+    <div id="delegateList"></div>
     <p class="dev-credit">Content last updated: <span id="lastUpdated">—</span><br>Event app developed by <a href="https://confhub.ng" target="_blank" rel="noopener">ConfHub.ng</a></p>
   </section>
 </main>
@@ -217,6 +223,7 @@
    Agenda:       day | time | title | speaker | venue | category
    Speakers:     name | role | bio | photo   (photo = image URL or filename in the repo, e.g. speakers/onah.jpg)
    Abstracts:    code | title | authors
+   Attendees:    name | institution   (names only — keep emails in a separate PRIVATE sheet)
    Info:         heading | details
    Announcements: date | title | message   (newest row at the bottom; latest shows as the top banner too)
    Note: Info rows with heading "Theme" or "Enquiries" also fill the Home tab cards.
@@ -261,11 +268,14 @@ const SAMPLE = {
   ],
   Announcements: [
     {date:"", title:"Abstract Submission Open", message:"Submit your abstract to naprasnbisibadan@gmail.com on or before 20th July, 2026."}
+  ],
+  Attendees: [
+    {name:"Delegate names will appear here", institution:"Registered delegates are listed once the Sheet is connected"}
   ]
 };
 
 /* ---------- Data loading: Google Sheet (via opensheet.elk.sh) with offline cache ---------- */
-const TABS = ["Agenda","Speakers","Abstracts","Info","Announcements"];
+const TABS = ["Agenda","Speakers","Abstracts","Info","Announcements","Attendees"];
 let DATA = JSON.parse(localStorage.getItem("nn26-data") || "null") || SAMPLE;
 
 async function refresh(){
@@ -343,6 +353,16 @@ function renderInfo(){
   document.getElementById("lastUpdated").textContent = localStorage.getItem("nn26-updated") || "—";
 }
 
+function renderDelegates(filter=""){
+  const q = filter.toLowerCase();
+  const rows = (DATA.Attendees || []).filter(r =>
+    !q || (r.name||"").toLowerCase().includes(q) || (r.institution||"").toLowerCase().includes(q));
+  document.getElementById("delegateList").innerHTML = rows.length ? rows.map(r => {
+    const initials = esc((r.name||"?").split(" ").map(w=>w[0]).slice(0,2).join(""));
+    return `<div class="spk"><div class="av">${initials}</div><div><h3>${esc(r.name)}</h3><div class="bio">${esc(r.institution)}</div></div></div>`;
+  }).join("") : `<p class="empty">No delegates found.</p>`;
+}
+
 function renderAnnounce(){
   const rows = DATA.Announcements || [];
   const bar = document.getElementById("announceBar");
@@ -356,7 +376,7 @@ function renderAnnounce(){
     </div>`).join("") : `<p class="empty">No announcements yet — check back during the conference.</p>`;
 }
 
-function renderAll(){ renderAgenda(); renderSpeakers(); renderAbstracts(document.getElementById("absSearch").value); renderInfo(); renderAnnounce(); }
+function renderAll(){ renderAgenda(); renderSpeakers(); renderAbstracts(document.getElementById("absSearch").value); renderInfo(); renderAnnounce(); renderDelegates(document.getElementById("delSearch").value); }
 
 /* ---------- Tabs ---------- */
 document.getElementById("tabs").addEventListener("click", e => {
@@ -366,6 +386,7 @@ document.getElementById("tabs").addEventListener("click", e => {
 });
 document.getElementById("absSearch").addEventListener("input", e => renderAbstracts(e.target.value));
 document.getElementById("agSearch").addEventListener("input", () => renderAgenda());
+document.getElementById("delSearch").addEventListener("input", e => renderDelegates(e.target.value));
 
 /* ---------- Sponsor slideshow ---------- */
 const slides = [...document.querySelectorAll(".slide")];
