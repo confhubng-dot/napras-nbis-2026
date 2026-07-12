@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>NAPRAS 31st &amp; NBIS 19th AGM 2026 — Official Event App</title>
+<meta name="description" content="Official event app for the 31st NAPRAS / 19th NBIS AGM and Scientific Conference — Ibadan, 18–22 August 2026. Programme, abstracts, venue and announcements.">
+<meta name="theme-color" content="#12386b">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="napras-logo.png">
+<link rel="apple-touch-icon" href="napras-logo.png">
+<style>
+  :root{
+    --ink:#101828; --slate:#475467; --mist:#98a2b3; --line:#e4e7ec;
+    --soft:#f4f7fb; --brand:#12386b; --brand-2:#1d5aa8; --brand-soft:#e8f0fa;
+    --red:#c0242b; --gold:#f4b400;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--soft);color:var(--ink);line-height:1.5;padding-bottom:108px}
+  a{color:inherit;text-decoration:none}
+
+  /* ---------- Header ---------- */
+  .hero{background:linear-gradient(140deg,var(--brand),var(--brand-2));color:#fff;padding:22px 16px 18px;text-align:center}
+  .logos{display:flex;justify-content:center;align-items:center;gap:18px;margin-bottom:12px}
+  .logos img{height:56px;width:56px;object-fit:contain;background:#fff;border-radius:50%;padding:4px}
+  .logos .fallback{height:56px;width:56px;border-radius:50%;background:#fff;color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.7rem}
+  .hero h1{font-size:1.25rem;letter-spacing:-.01em;margin-bottom:4px}
+  .hero .sub{font-size:.8rem;opacity:.88;max-width:34rem;margin:0 auto}
+  .hero .meta{margin-top:8px;font-size:.78rem;opacity:.85}
+  .offline-note{display:none;background:var(--gold);color:#5c4700;text-align:center;font-size:.75rem;font-weight:700;padding:5px}
+
+  /* ---------- Announcement ticker ---------- */
+  .announce{background:#fff;border-bottom:1px solid var(--line);padding:9px 14px;display:flex;gap:9px;align-items:flex-start;font-size:.84rem}
+  .announce .tag{background:var(--red);color:#fff;font-size:.62rem;font-weight:800;padding:2px 8px;border-radius:999px;flex-shrink:0;margin-top:2px}
+
+  /* ---------- Tabs ---------- */
+  .tabs{position:sticky;top:0;z-index:30;display:flex;background:#fff;border-bottom:2px solid var(--line);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{flex:0 0 auto;padding:12px 15px;border:none;background:none;font:inherit;font-size:.82rem;font-weight:600;color:var(--slate);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+  .tabs button.on{color:var(--brand);border-bottom-color:var(--brand)}
+
+  main{max-width:760px;margin:0 auto;padding:14px}
+  .panel{display:none}
+  .panel.on{display:block}
+
+  /* ---------- Agenda ---------- */
+  .daybar{display:flex;gap:8px;margin-bottom:12px}
+  .daybar button{flex:1;padding:9px;border:1.5px solid var(--line);background:#fff;border-radius:10px;font:inherit;font-size:.8rem;font-weight:700;color:var(--slate);cursor:pointer}
+  .daybar button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+  .sess{background:#fff;border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+  .sess .time{font-size:.72rem;font-weight:800;color:var(--brand-2);text-transform:uppercase;letter-spacing:.03em}
+  .sess h3{font-size:.95rem;margin:2px 0}
+  .sess .where{font-size:.78rem;color:var(--mist)}
+  .sess .who{font-size:.8rem;color:var(--slate);margin-top:3px}
+  .sess .cat{display:inline-block;margin-top:6px;background:var(--brand-soft);color:var(--brand);font-size:.66rem;font-weight:800;padding:2px 9px;border-radius:999px}
+
+  /* ---------- Speakers ---------- */
+  .spk{background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px 14px;margin-bottom:10px;display:flex;gap:12px;align-items:center}
+  .spk .av{width:48px;height:48px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;overflow:hidden}
+  .spk .av img{width:100%;height:100%;object-fit:cover}
+  .spk h3{font-size:.95rem}
+  .spk .role{font-size:.78rem;color:var(--brand-2);font-weight:600}
+  .spk .bio{font-size:.8rem;color:var(--slate);margin-top:2px}
+
+  /* ---------- Abstracts ---------- */
+  .search{width:100%;padding:11px 14px;border:1.5px solid var(--line);border-radius:10px;font:inherit;font-size:.9rem;margin-bottom:12px;background:#fff}
+  .search:focus{outline:none;border-color:var(--brand-2)}
+  .abs{background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px 14px;margin-bottom:10px}
+  .abs .id{font-size:.68rem;font-weight:800;color:var(--mist)}
+  .abs h3{font-size:.92rem;margin:2px 0}
+  .abs .auth{font-size:.78rem;color:var(--slate)}
+
+  /* ---------- Home ---------- */
+  .welcome-h{font-size:1.15rem;color:var(--brand);margin-bottom:6px}
+  .welcome-p{font-size:.88rem;color:var(--slate);margin-bottom:14px}
+  .card-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .tip{background:var(--brand-soft);border:1px solid #cfe0f5;border-radius:10px;padding:11px 13px;font-size:.82rem;color:var(--slate)}
+
+  /* ---------- Info ---------- */
+  .info-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:15px;margin-bottom:10px}
+  .info-card h3{font-size:.95rem;color:var(--brand);margin-bottom:5px}
+  .info-card p{font-size:.85rem;color:var(--slate)}
+  .card-grid .info-card{margin-bottom:0}
+  .dev-credit{text-align:center;font-size:.78rem;color:var(--mist);padding:16px 0 4px}
+  .dev-credit a{color:var(--brand-2);font-weight:700}
+
+  /* ---------- Announcements ---------- */
+  .ann{background:#fff;border:1px solid var(--line);border-left:4px solid var(--red);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+  .ann .d8{font-size:.7rem;font-weight:800;color:var(--mist);text-transform:uppercase;letter-spacing:.04em}
+  .ann h3{font-size:.92rem;margin:2px 0}
+  .ann p{font-size:.84rem;color:var(--slate)}
+
+  .empty{text-align:center;color:var(--mist);font-size:.85rem;padding:26px 0}
+
+  /* ---------- Sponsor slideshow (bottom) ---------- */
+  .sponsor{position:fixed;left:0;right:0;bottom:0;z-index:40;background:linear-gradient(135deg,#0d1b2e,#173a63);color:#fff;box-shadow:0 -6px 24px rgba(16,24,40,.25);padding-bottom:env(safe-area-inset-bottom)}
+  .sp-label{text-align:center;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:#9db8d8;padding-top:4px}
+  .sp-track{position:relative;height:72px;overflow:hidden}
+  .slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:2px 12px;opacity:0;transform:translateY(8px);transition:opacity .5s,transform .5s;pointer-events:none}
+  .slide.on{opacity:1;transform:none;pointer-events:auto}
+  .slide .t{font-weight:800;font-size:.76rem;line-height:1.3}
+  .slide .t b{color:var(--gold)}
+  .slide .d{font-size:.62rem;line-height:1.35;color:#c8d8ec;margin:1px 0 4px;max-width:34rem;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .sp-btns{display:flex;gap:7px;flex-shrink:0}
+  .sp-btn{display:inline-block;font-size:.6rem;font-weight:800;padding:3px 11px;border-radius:999px;background:var(--gold);color:#3d2f00}
+  .sp-btn.ghost{background:transparent;border:1.5px solid #6c8db4;color:#dce8f5}
+  .sp-dots{display:flex;justify-content:center;gap:5px;padding:3px 0 5px}
+  .sp-dots span{width:6px;height:6px;border-radius:50%;background:#3f5c80;cursor:pointer}
+  .sp-dots span.on{background:var(--gold)}
+  @media(min-width:600px){ .sp-track{height:60px} }
+</style>
+</head>
+<body>
+
+<div class="offline-note" id="offlineNote">You're offline — showing saved programme</div>
+
+<header class="hero">
+  <div class="logos">
+    <img src="napras-logo.png" alt="NAPRAS logo" onerror="this.outerHTML='<div class=fallback>NAPRAS</div>'">
+    <img src="nbis-logo.png" alt="NBIS logo" onerror="this.outerHTML='<div class=fallback>NBIS</div>'">
+  </div>
+  <h1>NAPRAS 31st · NBIS 19th AGM 2026</h1>
+  <p class="sub">Annual General Meeting &amp; Scientific Conference of the Nigerian Association of Plastic, Reconstructive and Aesthetic Surgeons &amp; the Nigerian Burn Injuries Society</p>
+  <p class="meta" id="eventMeta">18 – 22 August 2026 · International Conference Centre, University of Ibadan (UI-ICC)</p>
+</header>
+
+<div class="announce" id="announceBar" style="display:none">
+  <span class="tag">NEW</span><span id="announceText"></span>
+</div>
+
+<nav class="tabs" id="tabs">
+  <button data-p="home" class="on">Home</button>
+  <button data-p="agenda">Programme</button>
+  <button data-p="speakers">Speakers</button>
+  <button data-p="abstracts">Abstracts</button>
+  <button data-p="info">Venue &amp; Hotels</button>
+  <button data-p="news">Announcements</button>
+</nav>
+
+<main>
+  <section class="panel on" id="p-home">
+    <h2 class="welcome-h">Welcome, Delegates</h2>
+    <p class="welcome-p">Everything you need for the 31st NAPRAS &amp; 19th NBIS Annual General Meeting and Scientific Conference: the live programme, abstract book, venue &amp; hotel information, and real-time announcements.</p>
+    <div class="card-grid">
+      <div class="info-card"><h3>📅 Dates</h3><p>18th – 22nd August 2026</p></div>
+      <div class="info-card"><h3>📍 Venue</h3><p>International Conference Centre, University of Ibadan (UI-ICC)</p></div>
+      <div class="info-card"><h3>🎯 Themes</h3><p id="confTheme">NAPRAS: Quality Improvement in Plastic Surgery (sub: Comprehensive Cleft Care) · NBIS: Paediatric Burn Care (sub: Burn Wound Infection)</p></div>
+      <div class="info-card"><h3>☎️ Enquiries</h3><p id="confContact">Dr. Kayode Iyun, LOC Chairman — +234 802 336 7818</p></div>
+    </div>
+    <p class="tip">💡 Tip: tap your browser's menu and choose <strong>"Add to Home Screen"</strong> to install this as an app. Once installed it keeps working even with a weak signal inside the venue.</p>
+  </section>
+
+  <section class="panel" id="p-agenda">
+    <div class="daybar" id="daybar"></div>
+    <input class="search" id="agSearch" type="search" placeholder="Search sessions or speakers…">
+    <div id="agendaList"></div>
+  </section>
+
+  <section class="panel" id="p-speakers">
+    <div id="speakerList"></div>
+  </section>
+
+  <section class="panel" id="p-abstracts">
+    <input class="search" id="absSearch" type="search" placeholder="Search abstracts by title or author…">
+    <div id="absList"></div>
+  </section>
+
+  <section class="panel" id="p-info">
+    <div id="infoList"></div>
+  </section>
+
+  <section class="panel" id="p-news">
+    <div id="newsList"></div>
+    <p class="dev-credit">Content last updated: <span id="lastUpdated">—</span><br>Event app developed by <a href="https://confhub.ng" target="_blank" rel="noopener">ConfHub.ng</a></p>
+  </section>
+</main>
+
+<!-- ===== Sponsor slideshow (AskaSurgeon) ===== -->
+<aside class="sponsor" aria-label="Sponsor">
+  <div class="sp-label">Proudly sponsored by AskaSurgeon</div>
+  <div class="sp-track" id="spTrack">
+    <div class="slide on">
+      <div class="t"><b>AskaSurgeon</b> — The global network for plastic surgery</div>
+      <div class="d">Build your reputation. Let patients find you — under your verified name.</div>
+      <div class="sp-btns">
+        <a class="sp-btn" href="https://askasurgeon.co/for-surgeons" target="_blank" rel="noopener">Create your free profile</a>
+        <a class="sp-btn ghost" href="https://askasurgeon.co/for-surgeons" target="_blank" rel="noopener">Sign in</a>
+      </div>
+    </div>
+    <div class="slide">
+      <div class="t">Free for surgeons. <b>Board-certified only.</b></div>
+      <div class="d">MDCN, GMC or equivalent — verified worldwide before you answer. Patients see a board-certified surgeon, not an anonymous voice.</div>
+      <div class="sp-btns"><a class="sp-btn" href="https://askasurgeon.co/for-surgeons" target="_blank" rel="noopener">Register free</a></div>
+    </div>
+    <div class="slide">
+      <div class="t">Three ways to be heard</div>
+      <div class="d">Answer patient questions · Publish guides · Showcase your work.</div>
+      <div class="sp-btns"><a class="sp-btn" href="https://askasurgeon.co/for-surgeons" target="_blank" rel="noopener">See how it works</a></div>
+    </div>
+    <div class="slide">
+      <div class="t">Be found by patients searching</div>
+      <div class="d">High-intent patients browse by procedure. Answer in two minutes, between cases.</div>
+      <div class="sp-btns"><a class="sp-btn" href="https://askasurgeon.co/for-surgeons" target="_blank" rel="noopener">Get verified</a></div>
+    </div>
+  </div>
+  <div class="sp-dots" id="spDots"></div>
+</aside>
+
+<script>
+/* =====================================================================
+   CONFIG — Google Sheets content
+   1. Create a Google Sheet with tabs: Agenda, Speakers, Abstracts, Info, Announcements
+   2. File → Share → Anyone with the link (Viewer)
+   3. Paste the Sheet ID below (the long code in the sheet URL)
+   Leave SHEET_ID empty to use the built-in sample data.
+   Column headers required:
+   Agenda:       day | time | title | speaker | venue | category
+   Speakers:     name | role | bio | photo   (photo = image URL or filename in the repo, e.g. speakers/onah.jpg)
+   Abstracts:    code | title | authors
+   Info:         heading | details
+   Announcements: date | title | message   (newest row at the bottom; latest shows as the top banner too)
+   Note: Info rows with heading "Theme" or "Enquiries" also fill the Home tab cards.
+===================================================================== */
+const SHEET_ID = "";   // <-- paste your Google Sheet ID here
+
+/* ---------- Sample data (replaced by the Sheet when connected) ---------- */
+const SAMPLE = {
+  Agenda: [
+    {day:"Tue 18", time:"", title:"Pre-conference Workshop", speaker:"", venue:"UI-ICC", category:"Workshop"},
+    {day:"Wed 19", time:"", title:"Arrivals & Registration", speaker:"", venue:"UI-ICC Foyer", category:"General"},
+    {day:"Wed 19", time:"", title:"Burn Awareness Campaign", speaker:"", venue:"", category:"Outreach"},
+    {day:"Wed 19", time:"", title:"Pre-conference Workshop", speaker:"", venue:"UI-ICC", category:"Workshop"},
+    {day:"Wed 19", time:"Evening", title:"Welcome Cocktail", speaker:"", venue:"UI-ICC", category:"Social"},
+    {day:"Thu 20", time:"", title:"Opening Ceremony", speaker:"", venue:"Main Hall", category:"Plenary"},
+    {day:"Thu 20", time:"", title:"Presidential Lecture", speaker:"", venue:"Main Hall", category:"Plenary"},
+    {day:"Thu 20", time:"", title:"Launching of NJPS", speaker:"", venue:"Main Hall", category:"Plenary"},
+    {day:"Thu 20", time:"", title:"Scientific Sessions", speaker:"", venue:"", category:"Scientific"},
+    {day:"Thu 20", time:"", title:"NBIS AGM", speaker:"", venue:"", category:"AGM"},
+    {day:"Fri 21", time:"", title:"Scientific Sessions", speaker:"", venue:"", category:"Scientific"},
+    {day:"Fri 21", time:"", title:"NAPRAS AGM", speaker:"", venue:"", category:"AGM"},
+    {day:"Fri 21", time:"Evening", title:"Conference Dinner", speaker:"", venue:"", category:"Social"},
+    {day:"Sat 22", time:"", title:"Tour / Departure", speaker:"", venue:"", category:"General"}
+  ],
+  Speakers: [
+    {name:"Speaker Name", role:"Keynote Speaker", bio:"Bio goes here — update via the Google Sheet."},
+    {name:"Speaker Name", role:"Session Chair, Scientific Session I", bio:"Bio goes here — update via the Google Sheet."}
+  ],
+  Abstracts: [
+    {code:"ABS-001", title:"Sample abstract title — update via the Google Sheet", authors:"Author A, Author B"},
+    {code:"ABS-002", title:"Another sample abstract title", authors:"Author C, Author D"}
+  ],
+  Info: [
+    {heading:"Venue", details:"International Conference Centre, University of Ibadan (UI-ICC), Ibadan."},
+    {heading:"Abstract Submission", details:"Submit abstracts to naprasnbisibadan@gmail.com on or before 20th July, 2026."},
+    {heading:"Registration Fees", details:"Consultants: ₦90,000 early (on/before 20 June) · ₦120,000 late · ₦130,000 at venue. Residents & Non-physicians: ₦50,000 early · ₦70,000 late · ₦80,000 at venue."},
+    {heading:"Payment Details", details:"NAPRAS General Account — Nigerian Association of Plastic Reconstructive and Aesthetic Surgeons, Account No. 1000200632, United Bank for Africa (UBA)."},
+    {heading:"Leadership", details:"Prof. Ifeanyichukwu I. Onah (NAPRAS President) · Dr. Innih A. Kadiri (NBIS President) · Dr. Kayode Iyun (LOC Chairman, +234 802 336 7818)."},
+    {heading:"Recommended Hotels", details:"A list of partner hotels near the University of Ibadan will be published here."},
+    {heading:"Getting There", details:"Directions and shuttle information for delegates will be published here."},
+    {heading:"Enquiries", details:"Dr. Kayode Iyun, LOC Chairman — +234 802 336 7818"}
+  ],
+  Announcements: [
+    {date:"", title:"Abstract Submission Open", message:"Submit your abstract to naprasnbisibadan@gmail.com on or before 20th July, 2026."}
+  ]
+};
+
+/* ---------- Data loading: Google Sheet (via opensheet.elk.sh) with offline cache ---------- */
+const TABS = ["Agenda","Speakers","Abstracts","Info","Announcements"];
+let DATA = JSON.parse(localStorage.getItem("nn26-data") || "null") || SAMPLE;
+
+async function refresh(){
+  if(!SHEET_ID) return;
+  try{
+    const results = await Promise.all(TABS.map(t =>
+      fetch(`https://opensheet.elk.sh/${SHEET_ID}/${t}`).then(r => r.ok ? r.json() : [])
+    ));
+    const fresh = {};
+    TABS.forEach((t,i) => fresh[t] = Array.isArray(results[i]) ? results[i] : []);
+    if(fresh.Agenda.length){
+      DATA = fresh;
+      localStorage.setItem("nn26-data", JSON.stringify(fresh));
+      localStorage.setItem("nn26-updated", new Date().toLocaleString("en-GB", {day:"numeric", month:"short", hour:"2-digit", minute:"2-digit"}));
+      renderAll();
+    }
+  }catch(e){ /* offline — keep cached data */ }
+}
+window.addEventListener("offline", () => document.getElementById("offlineNote").style.display = "block");
+window.addEventListener("online",  () => { document.getElementById("offlineNote").style.display = "none"; refresh(); });
+if(!navigator.onLine) document.getElementById("offlineNote").style.display = "block";
+
+/* ---------- Rendering ---------- */
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let currentDay = null;
+
+function renderAgenda(){
+  const rows = DATA.Agenda || [];
+  const q = (document.getElementById("agSearch").value || "").toLowerCase();
+  const days = [...new Set(rows.map(r => r.day).filter(Boolean))];
+  if(!currentDay || !days.includes(currentDay)) currentDay = days[0];
+  document.getElementById("daybar").innerHTML = days.map(d =>
+    `<button class="${d===currentDay?"on":""}" onclick="currentDay='${esc(d)}';renderAgenda()">${esc(d)}</button>`).join("");
+  const list = rows.filter(r => q
+    ? ((r.title||"").toLowerCase().includes(q) || (r.speaker||"").toLowerCase().includes(q))
+    : r.day === currentDay);
+  document.getElementById("agendaList").innerHTML = list.length ? list.map(r => `
+    <div class="sess">
+      ${r.time ? `<div class="time">${esc(r.time)}</div>` : ""}
+      <h3>${esc(r.title)}</h3>
+      ${r.speaker ? `<div class="who">🎤 ${esc(r.speaker)}</div>` : ""}
+      <div class="where">📍 ${esc(r.venue)}</div>
+      ${r.category ? `<span class="cat">${esc(r.category)}</span>` : ""}
+    </div>`).join("") : `<p class="empty">Programme coming soon.</p>`;
+}
+
+function renderSpeakers(){
+  const rows = DATA.Speakers || [];
+  document.getElementById("speakerList").innerHTML = rows.length ? rows.map(r => {
+    const initials = esc((r.name||"?").split(" ").map(w=>w[0]).slice(0,2).join(""));
+    const av = r.photo
+      ? `<div class="av"><img src="${esc(r.photo)}" alt="${esc(r.name)}" loading="lazy" onerror="this.parentNode.textContent='${initials}'"></div>`
+      : `<div class="av">${initials}</div>`;
+    return `<div class="spk">${av}<div><h3>${esc(r.name)}</h3><div class="role">${esc(r.role)}</div><div class="bio">${esc(r.bio)}</div></div></div>`;
+  }).join("") : `<p class="empty">Speaker list coming soon.</p>`;
+}
+
+function renderAbstracts(filter=""){
+  const q = filter.toLowerCase();
+  const rows = (DATA.Abstracts || []).filter(r =>
+    !q || (r.title||"").toLowerCase().includes(q) || (r.authors||"").toLowerCase().includes(q));
+  document.getElementById("absList").innerHTML = rows.length ? rows.map(r => `
+    <div class="abs"><div class="id">${esc(r.code)}</div><h3>${esc(r.title)}</h3><div class="auth">${esc(r.authors)}</div></div>`).join("")
+    : `<p class="empty">No abstracts found.</p>`;
+}
+
+function renderInfo(){
+  const rows = DATA.Info || [];
+  document.getElementById("infoList").innerHTML = rows.map(r => `
+    <div class="info-card"><h3>${esc(r.heading)}</h3><p>${esc(r.details)}</p></div>`).join("");
+  const theme = rows.find(r => (r.heading||"").toLowerCase() === "theme");
+  const contact = rows.find(r => (r.heading||"").toLowerCase() === "enquiries");
+  if(theme) document.getElementById("confTheme").textContent = theme.details;
+  if(contact) document.getElementById("confContact").textContent = contact.details;
+  document.getElementById("lastUpdated").textContent = localStorage.getItem("nn26-updated") || "—";
+}
+
+function renderAnnounce(){
+  const rows = DATA.Announcements || [];
+  const bar = document.getElementById("announceBar");
+  if(rows.length){ bar.style.display = "flex"; document.getElementById("announceText").textContent = rows[rows.length-1].message || rows[rows.length-1].title || ""; }
+  else bar.style.display = "none";
+  document.getElementById("newsList").innerHTML = rows.length ? [...rows].reverse().map(r => `
+    <div class="ann">
+      ${r.date ? `<div class="d8">${esc(r.date)}</div>` : ""}
+      ${r.title ? `<h3>${esc(r.title)}</h3>` : ""}
+      <p>${esc(r.message)}</p>
+    </div>`).join("") : `<p class="empty">No announcements yet — check back during the conference.</p>`;
+}
+
+function renderAll(){ renderAgenda(); renderSpeakers(); renderAbstracts(document.getElementById("absSearch").value); renderInfo(); renderAnnounce(); }
+
+/* ---------- Tabs ---------- */
+document.getElementById("tabs").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b) return;
+  document.querySelectorAll(".tabs button").forEach(x => x.classList.toggle("on", x===b));
+  document.querySelectorAll(".panel").forEach(p => p.classList.toggle("on", p.id === "p-"+b.dataset.p));
+});
+document.getElementById("absSearch").addEventListener("input", e => renderAbstracts(e.target.value));
+document.getElementById("agSearch").addEventListener("input", () => renderAgenda());
+
+/* ---------- Sponsor slideshow ---------- */
+const slides = [...document.querySelectorAll(".slide")];
+const dotsBox = document.getElementById("spDots");
+slides.forEach((_,i) => { const d = document.createElement("span"); if(i===0) d.className="on"; d.onclick = () => go(i,true); dotsBox.appendChild(d); });
+const dots = [...dotsBox.children];
+let cur = 0, timer = setInterval(() => go(cur+1), 6000);
+function go(i, manual){
+  cur = (i + slides.length) % slides.length;
+  slides.forEach((s,k) => s.classList.toggle("on", k===cur));
+  dots.forEach((d,k) => d.classList.toggle("on", k===cur));
+  if(manual){ clearInterval(timer); timer = setInterval(() => go(cur+1), 6000); }
+}
+
+/* ---------- Init ---------- */
+renderAll();
+refresh();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
