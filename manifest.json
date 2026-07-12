@@ -1,0 +1,13 @@
+{
+  "name": "NAPRAS NBIS 2026 — Official Event App",
+  "short_name": "NAPRAS NBIS 2026",
+  "description": "Joint Scientific Conference of NAPRAS and NBIS — programme, speakers, abstracts and announcements.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#12386b",
+  "icons": [
+    { "src": "napras-logo.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "napras-logo.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
