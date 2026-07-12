@@ -228,7 +228,7 @@
    Announcements: date | title | message   (newest row at the bottom; latest shows as the top banner too)
    Note: Info rows with heading "Theme" or "Enquiries" also fill the Home tab cards.
 ===================================================================== */
-const SHEET_ID = "1mJJPRoXeG2VRh1oYrnp7pwflWdyKiAALZYvjiT2wVLE";   // <-- paste your Google Sheet ID here
+const SHEET_ID = "";   // <-- paste your Google Sheet ID here
 
 /* ---------- Sample data (replaced by the Sheet when connected) ---------- */
 const SAMPLE = {
@@ -300,6 +300,14 @@ if(!navigator.onLine) document.getElementById("offlineNote").style.display = "bl
 
 /* ---------- Rendering ---------- */
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const TITLE_RE = /^(dr|prof|professor|mr|mrs|ms|miss|engr|rev|chief|sir|alhaji|alhaja|hon|pharm|barr)\.?,?$/i;
+function initialsOf(name){
+  const parts = String(name || "?").trim().split(/\s+/).filter(w => !TITLE_RE.test(w));
+  if(!parts.length) return "?";
+  const first = parts[0][0] || "";
+  const last  = parts.length > 1 ? parts[parts.length-1][0] : "";
+  return (first + last).toUpperCase();
+}
 let currentDay = null;
 
 function renderAgenda(){
@@ -325,7 +333,7 @@ function renderAgenda(){
 function renderSpeakers(){
   const rows = DATA.Speakers || [];
   document.getElementById("speakerList").innerHTML = rows.length ? rows.map(r => {
-    const initials = esc((r.name||"?").split(" ").map(w=>w[0]).slice(0,2).join(""));
+    const initials = esc(initialsOf(r.name));
     const av = r.photo
       ? `<div class="av"><img src="${esc(r.photo)}" alt="${esc(r.name)}" loading="lazy" onerror="this.parentNode.textContent='${initials}'"></div>`
       : `<div class="av">${initials}</div>`;
@@ -358,7 +366,7 @@ function renderDelegates(filter=""){
   const rows = (DATA.Attendees || []).filter(r =>
     !q || (r.name||"").toLowerCase().includes(q) || (r.institution||"").toLowerCase().includes(q));
   document.getElementById("delegateList").innerHTML = rows.length ? rows.map(r => {
-    const initials = esc((r.name||"?").split(" ").map(w=>w[0]).slice(0,2).join(""));
+    const initials = esc(initialsOf(r.name));
     return `<div class="spk"><div class="av">${initials}</div><div><h3>${esc(r.name)}</h3><div class="bio">${esc(r.institution)}</div></div></div>`;
   }).join("") : `<p class="empty">No delegates found.</p>`;
 }
