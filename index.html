@@ -94,6 +94,7 @@
   .ann .d8{font-size:.7rem;font-weight:800;color:var(--mist);text-transform:uppercase;letter-spacing:.04em}
   .ann h3{font-size:.92rem;margin:2px 0}
   .ann p{font-size:.84rem;color:var(--slate)}
+  .ann-btn{display:inline-block;margin-top:8px;background:var(--brand);color:#fff;font-size:.76rem;font-weight:800;padding:7px 16px;border-radius:999px}
 
   .empty{text-align:center;color:var(--mist);font-size:.85rem;padding:26px 0}
 
@@ -130,7 +131,7 @@
 </header>
 
 <div class="announce" id="announceBar" style="display:none">
-  <span class="tag">NEW</span><span id="announceText"></span>
+  <span class="tag">NEW</span><span id="announceText"></span><a id="announceLink" href="#" target="_blank" rel="noopener" style="display:none;font-weight:800;color:var(--brand-2);white-space:nowrap;margin-left:auto">Open →</a>
 </div>
 
 <nav class="tabs" id="tabs">
@@ -189,31 +190,7 @@
 <!-- ===== Sponsor slideshow (AskaSurgeon) ===== -->
 <aside class="sponsor" aria-label="Sponsor">
   <div class="sp-label">Proudly sponsored by AskaSurgeon</div>
-  <div class="sp-track" id="spTrack">
-    <div class="slide on">
-      <div class="t"><b>AskaSurgeon</b> — The global network for plastic surgery</div>
-      <div class="d">Build your reputation. Let patients find you — under your verified name.</div>
-      <div class="sp-btns">
-        <a class="sp-btn" href="https://askasurgeon.co/for-surgeons" target="_blank" rel="noopener">Create your free profile</a>
-        <a class="sp-btn ghost" href="https://askasurgeon.co/for-surgeons" target="_blank" rel="noopener">Sign in</a>
-      </div>
-    </div>
-    <div class="slide">
-      <div class="t">Free for surgeons. <b>Board-certified only.</b></div>
-      <div class="d">MDCN, GMC or equivalent — verified worldwide before you answer. Patients see a board-certified surgeon, not an anonymous voice.</div>
-      <div class="sp-btns"><a class="sp-btn" href="https://askasurgeon.co/for-surgeons" target="_blank" rel="noopener">Register free</a></div>
-    </div>
-    <div class="slide">
-      <div class="t">Three ways to be heard</div>
-      <div class="d">Answer patient questions · Publish guides · Showcase your work.</div>
-      <div class="sp-btns"><a class="sp-btn" href="https://askasurgeon.co/for-surgeons" target="_blank" rel="noopener">See how it works</a></div>
-    </div>
-    <div class="slide">
-      <div class="t">Be found by patients searching</div>
-      <div class="d">High-intent patients browse by procedure. Answer in two minutes, between cases.</div>
-      <div class="sp-btns"><a class="sp-btn" href="https://askasurgeon.co/for-surgeons" target="_blank" rel="noopener">Get verified</a></div>
-    </div>
-  </div>
+  <div class="sp-track" id="spTrack"></div>
   <div class="sp-dots" id="spDots"></div>
 </aside>
 
@@ -230,10 +207,11 @@
    Abstracts:    code | title | authors | body   (body = the full abstract text; card expands on tap)
    Attendees:    name | institution   (names only — keep emails in a separate PRIVATE sheet)
    Info:         heading | details
-   Announcements: date | title | message   (newest row at the bottom; latest shows as the top banner too)
+   Announcements: date | title | message | link | linktext   (link adds a button, e.g. a feedback form; newest row at the bottom; latest shows as the top banner too)
+   Sponsors:     label | title | message | buttontext | link   (one row per slide; label on any row sets the strip caption; empty tab hides the sponsor bar)
    Note: Info rows with heading "Theme" or "Enquiries" also fill the Home tab cards.
 ===================================================================== */
-const SHEET_ID = "1mJJPRoXeG2VRh1oYrnp7pwflWdyKiAALZYvjiT2wVLE";   // <-- paste your Google Sheet ID here
+const SHEET_ID = "";   // <-- paste your Google Sheet ID here
 
 /* ---------- Sample data (replaced by the Sheet when connected) ---------- */
 const SAMPLE = {
@@ -271,6 +249,12 @@ const SAMPLE = {
     {heading:"Getting There", details:"Directions and shuttle information for delegates will be published here."},
     {heading:"Enquiries", details:"Dr. Kayode Iyun, LOC Chairman — +234 802 336 7818"}
   ],
+  Sponsors: [
+    {label:"Proudly sponsored by AskaSurgeon", title:"AskaSurgeon — The global network for plastic surgery", message:"Build your reputation. Let patients find you — under your verified name.", buttontext:"Create your free profile", link:"https://askasurgeon.co/for-surgeons"},
+    {title:"Free for surgeons. Board-certified only.", message:"MDCN, GMC or equivalent — verified worldwide before you answer. Patients see a board-certified surgeon, not an anonymous voice.", buttontext:"Register free", link:"https://askasurgeon.co/for-surgeons"},
+    {title:"Three ways to be heard", message:"Answer patient questions · Publish guides · Showcase your work.", buttontext:"See how it works", link:"https://askasurgeon.co/for-surgeons"},
+    {title:"Be found by patients searching", message:"High-intent patients browse by procedure. Answer in two minutes, between cases.", buttontext:"Get verified", link:"https://askasurgeon.co/for-surgeons"}
+  ],
   Announcements: [
     {date:"", title:"Abstract Submission Open", message:"Submit your abstract to naprasnbisibadan@gmail.com on or before 20th July, 2026."}
   ],
@@ -280,7 +264,7 @@ const SAMPLE = {
 };
 
 /* ---------- Data loading: Google Sheet (via opensheet.elk.sh) with offline cache ---------- */
-const TABS = ["Agenda","Speakers","Abstracts","Info","Announcements","Attendees"];
+const TABS = ["Agenda","Speakers","Abstracts","Info","Announcements","Attendees","Sponsors"];
 let DATA = JSON.parse(localStorage.getItem("nn26-data") || "null") || SAMPLE;
 
 async function refresh(){
@@ -382,17 +366,24 @@ function renderDelegates(filter=""){
 function renderAnnounce(){
   const rows = DATA.Announcements || [];
   const bar = document.getElementById("announceBar");
-  if(rows.length){ bar.style.display = "flex"; document.getElementById("announceText").textContent = rows[rows.length-1].message || rows[rows.length-1].title || ""; }
-  else bar.style.display = "none";
+  const al = document.getElementById("announceLink");
+  if(rows.length){
+    const last = rows[rows.length-1];
+    bar.style.display = "flex";
+    document.getElementById("announceText").textContent = last.message || last.title || "";
+    if(last.link){ al.href = last.link; al.textContent = last.linktext || "Open →"; al.style.display = "inline"; }
+    else al.style.display = "none";
+  } else bar.style.display = "none";
   document.getElementById("newsList").innerHTML = rows.length ? [...rows].reverse().map(r => `
     <div class="ann">
       ${r.date ? `<div class="d8">${esc(r.date)}</div>` : ""}
       ${r.title ? `<h3>${esc(r.title)}</h3>` : ""}
       <p>${esc(r.message)}</p>
+      ${r.link ? `<a class="ann-btn" href="${esc(r.link)}" target="_blank" rel="noopener">${esc(r.linktext || "Open link")}</a>` : ""}
     </div>`).join("") : `<p class="empty">No announcements yet — check back during the conference.</p>`;
 }
 
-function renderAll(){ renderAgenda(); renderSpeakers(); renderAbstracts(document.getElementById("absSearch").value); renderInfo(); renderAnnounce(); renderDelegates(document.getElementById("delSearch").value); }
+function renderAll(){ renderAgenda(); renderSpeakers(); renderAbstracts(document.getElementById("absSearch").value); renderInfo(); renderAnnounce(); renderDelegates(document.getElementById("delSearch").value); renderSponsors(); }
 
 /* ---------- Tabs ---------- */
 document.getElementById("tabs").addEventListener("click", e => {
@@ -405,17 +396,39 @@ document.getElementById("agSearch").addEventListener("input", () => renderAgenda
 document.getElementById("delSearch").addEventListener("input", e => renderDelegates(e.target.value));
 
 /* ---------- Sponsor slideshow ---------- */
-const slides = [...document.querySelectorAll(".slide")];
-const dotsBox = document.getElementById("spDots");
-slides.forEach((_,i) => { const d = document.createElement("span"); if(i===0) d.className="on"; d.onclick = () => go(i,true); dotsBox.appendChild(d); });
-const dots = [...dotsBox.children];
-let cur = 0, timer = setInterval(() => go(cur+1), 6000);
-function go(i, manual){
-  cur = (i + slides.length) % slides.length;
-  slides.forEach((s,k) => s.classList.toggle("on", k===cur));
-  dots.forEach((d,k) => d.classList.toggle("on", k===cur));
-  if(manual){ clearInterval(timer); timer = setInterval(() => go(cur+1), 6000); }
+let spTimer = null, spCur = 0;
+function renderSponsors(){
+  const rows = DATA.Sponsors || [];
+  const track = document.getElementById("spTrack");
+  const dotsBox = document.getElementById("spDots");
+  const bar = document.querySelector(".sponsor");
+  if(!rows.length){ bar.style.display = "none"; document.body.style.paddingBottom = "16px"; return; }
+  bar.style.display = ""; document.body.style.paddingBottom = "";
+  const labelRow = rows.find(r => r.label && String(r.label).trim());
+  if(labelRow) document.querySelector(".sp-label").textContent = labelRow.label;
+  track.innerHTML = rows.map((r,i) => `
+    <div class="slide${i===0?" on":""}">
+      <div class="t">${esc(r.title)}</div>
+      ${r.message ? `<div class="d">${esc(r.message)}</div>` : ""}
+      ${r.link ? `<div class="sp-btns"><a class="sp-btn" href="${esc(r.link)}" target="_blank" rel="noopener">${esc(r.buttontext || "Learn more")}</a></div>` : ""}
+    </div>`).join("");
+  dotsBox.innerHTML = "";
+  const slides = [...track.children];
+  slides.forEach((_,i) => { const d = document.createElement("span"); if(i===0) d.className="on"; d.onclick = () => spGo(i,true); dotsBox.appendChild(d); });
+  spCur = 0;
+  clearInterval(spTimer);
+  if(slides.length > 1) spTimer = setInterval(() => spGo(spCur+1), 6000);
 }
+function spGo(i, manual){
+  const slides = [...document.getElementById("spTrack").children];
+  const dots = [...document.getElementById("spDots").children];
+  if(!slides.length) return;
+  spCur = (i + slides.length) % slides.length;
+  slides.forEach((s,k) => s.classList.toggle("on", k===spCur));
+  dots.forEach((d,k) => d.classList.toggle("on", k===spCur));
+  if(manual){ clearInterval(spTimer); spTimer = setInterval(() => spGo(spCur+1), 6000); }
+}
+renderSponsors();
 
 /* ---------- Init ---------- */
 renderAll();
