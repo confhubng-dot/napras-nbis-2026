@@ -98,6 +98,12 @@
 
   .empty{text-align:center;color:var(--mist);font-size:.85rem;padding:26px 0}
 
+  /* ---------- Notifications ---------- */
+  .notif-btn{display:block;width:100%;margin-top:12px;padding:12px;border:1.5px solid var(--brand);background:var(--brand-soft);color:var(--brand);font:inherit;font-size:.9rem;font-weight:700;border-radius:10px;cursor:pointer}
+  .toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:11px 16px;border-radius:12px;font-size:.85rem;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.35);max-width:92vw;opacity:0;pointer-events:none;transition:opacity .3s}
+  .toast b{display:block;font-size:.9rem}
+  .toast.on{opacity:1}
+
   /* ---------- Sponsor slideshow (bottom) ---------- */
   .sponsor{position:fixed;left:0;right:0;bottom:0;z-index:40;background:linear-gradient(135deg,#0d1b2e,#173a63);color:#fff;box-shadow:0 -6px 24px rgba(16,24,40,.25);padding-bottom:env(safe-area-inset-bottom)}
   .sp-label{text-align:center;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:#9db8d8;padding-top:4px}
@@ -155,6 +161,7 @@
       <div class="info-card"><h3>☎️ Enquiries</h3><p id="confContact">Dr. Kayode Iyun, LOC Chairman — +234 802 336 7818</p></div>
     </div>
     <p class="tip">💡 Tip: tap your browser's menu and choose <strong>"Add to Home Screen"</strong> to install this as an app. Once installed it keeps working even with a weak signal inside the venue.</p>
+    <button class="notif-btn" id="notifBtn" style="display:none">🔔 Enable announcement alerts</button>
   </section>
 
   <section class="panel" id="p-agenda">
@@ -211,7 +218,7 @@
    Sponsors:     label | title | message | buttontext | link   (one row per slide; label on any row sets the strip caption; empty tab hides the sponsor bar)
    Note: Info rows with heading "Theme" or "Enquiries" also fill the Home tab cards.
 ===================================================================== */
-const SHEET_ID = "1mJJPRoXeG2VRh1oYrnp7pwflWdyKiAALZYvjiT2wVLE";   // <-- paste your Google Sheet ID here
+const SHEET_ID = "";   // <-- paste your Google Sheet ID here
 
 /* ---------- Sample data (replaced by the Sheet when connected) ---------- */
 const SAMPLE = {
@@ -280,9 +287,12 @@ async function refresh(){
       localStorage.setItem("nn26-data", JSON.stringify(fresh));
       localStorage.setItem("nn26-updated", new Date().toLocaleString("en-GB", {day:"numeric", month:"short", hour:"2-digit", minute:"2-digit"}));
       renderAll();
+      checkNewAnnouncement();
     }
   }catch(e){ /* offline — keep cached data */ }
 }
+setInterval(refresh, 90000); // re-fetch every 90 seconds while open
+document.addEventListener("visibilitychange", () => { if(!document.hidden) refresh(); });
 window.addEventListener("offline", () => document.getElementById("offlineNote").style.display = "block");
 window.addEventListener("online",  () => { document.getElementById("offlineNote").style.display = "none"; refresh(); });
 if(!navigator.onLine) document.getElementById("offlineNote").style.display = "block";
@@ -433,6 +443,44 @@ renderSponsors();
 /* ---------- Init ---------- */
 renderAll();
 refresh();
+/* ---------- Announcement alerts ---------- */
+function annSig(){
+  const rows = DATA.Announcements || [];
+  if(!rows.length) return "";
+  const l = rows[rows.length-1];
+  return (l.title||"") + "|" + (l.message||"");
+}
+function checkNewAnnouncement(){
+  const sig = annSig();
+  const prev = localStorage.getItem("nn26-annsig");
+  localStorage.setItem("nn26-annsig", sig);
+  if(!sig || prev === null || prev === sig) return;   // first run or unchanged: stay quiet
+  const rows = DATA.Announcements || [];
+  const l = rows[rows.length-1];
+  if(navigator.vibrate) navigator.vibrate([200,100,200]);
+  showToast(l.title || "New announcement", l.message || "");
+  if("Notification" in window && Notification.permission === "granted" && "serviceWorker" in navigator){
+    navigator.serviceWorker.ready.then(reg => reg.showNotification(l.title || "Conference announcement", {
+      body: l.message || "", icon: "napras-logo.png", badge: "napras-logo.png", tag: "conf-announcement"
+    })).catch(()=>{});
+  }
+}
+function showToast(title, msg){
+  let t = document.getElementById("toast");
+  if(!t){ t = document.createElement("div"); t.id = "toast"; t.className = "toast"; document.body.appendChild(t); }
+  t.innerHTML = "<b>📢 " + title.replace(/</g,"&lt;") + "</b>" + msg.replace(/</g,"&lt;");
+  t.classList.add("on");
+  clearTimeout(showToast._h);
+  showToast._h = setTimeout(() => t.classList.remove("on"), 7000);
+}
+(function initNotifBtn(){
+  const b = document.getElementById("notifBtn");
+  if(!("Notification" in window) || Notification.permission !== "default") return; // unsupported or already decided
+  b.style.display = "block";
+  b.onclick = () => Notification.requestPermission().then(p => { if(p !== "default") b.style.display = "none"; });
+})();
+if(localStorage.getItem("nn26-annsig") === null) localStorage.setItem("nn26-annsig", annSig());
+
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>

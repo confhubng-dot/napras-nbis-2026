@@ -1,5 +1,5 @@
 /* NAPRAS NBIS 2026 — offline cache */
-const CACHE = "nn26-v1";
+const CACHE = "nn26-v2";
 const ASSETS = ["./", "index.html", "manifest.json", "napras-logo.png", "nbis-logo.png"];
 
 self.addEventListener("install", e => {
@@ -25,4 +25,12 @@ self.addEventListener("fetch", e => {
       })
       .catch(() => caches.match(e.request).then(m => m || caches.match("index.html")))
   );
+});
+
+self.addEventListener("notificationclick", e => {
+  e.notification.close();
+  e.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+    for (const c of list) { if ("focus" in c) return c.focus(); }
+    return clients.openWindow("./");
+  }));
 });
